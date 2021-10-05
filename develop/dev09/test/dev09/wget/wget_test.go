@@ -45,7 +45,7 @@ func TestWget_GetSavePathAndName2(t *testing.T) {
 	w := wget.NewWget()
 	w.SetDomain("https://demo2.chethemes.com/shoesmarket")
 	url1 := "https://demo2.chethemes.com/shoesmarket/comments/feed/"
-	exp1P, exp1N := "", "index"
+	exp1P, exp1N := "/comments", "feed"
 
 	r1P, r1N := w.GetSavePathAndName(url1)
 

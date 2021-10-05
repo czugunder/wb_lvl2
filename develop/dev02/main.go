@@ -5,11 +5,13 @@ import (
 	"fmt"
 )
 
+// Start функция для запуска программы
 func Start() {
 	s := `\\`
 	fmt.Println(Unpack(s))
 }
 
+// Unpack главная функция, выполняющая распаковку
 func Unpack(s string) (string, error) {
 	var letterBuffer rune
 	var gotLetter bool

@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// Event - тип, описывающий событие в календаре
 type Event struct {
 	Name    string    `json:"name"`
 	Place   string    `json:"place"`
@@ -14,15 +15,18 @@ type Event struct {
 	EndDT   time.Time `json:"end_dt"`
 }
 
+// NewEvent создает экземпляр Event
 func NewEvent() *Event {
 	return &Event{}
 }
 
+// Calendar - тип, описывающий календарь
 type Calendar struct {
 	events map[string]*Event
 	mu     *sync.RWMutex
 }
 
+// NewCalendar создает экземпляр Calendar
 func NewCalendar() *Calendar {
 	return &Calendar{
 		events: make(map[string]*Event),
@@ -30,6 +34,7 @@ func NewCalendar() *Calendar {
 	}
 }
 
+// CreateEvent создает событие в календаре
 func (c *Calendar) CreateEvent(eve *Event) string {
 	c.mu.Lock()
 	eveUID := c.newUID()
@@ -49,6 +54,7 @@ func (c *Calendar) newUID() string { // вызывается под Lock, поэ
 	return attempt
 }
 
+// UIDContender создает вариант UID
 func (c *Calendar) UIDContender() string {
 	rand.Seed(time.Now().UnixNano())
 	bytes := make([]byte, 32)
@@ -68,6 +74,7 @@ func (c *Calendar) UIDContender() string {
 	return string(bytes)
 }
 
+// UpdateEvent обновляет событие в календаре
 func (c *Calendar) UpdateEvent(UID string, eve *Event) (*Event, error) {
 	if storedEve, err := c.GetEvent(UID); err != nil {
 		return nil, err
@@ -91,6 +98,7 @@ func (c *Calendar) UpdateEvent(UID string, eve *Event) (*Event, error) {
 	}
 }
 
+// DeleteEvent удаляет событие в календаре
 func (c *Calendar) DeleteEvent(UID string) (eve *Event, err error) {
 	c.mu.Lock()
 	v, found := c.events[UID]
@@ -104,6 +112,7 @@ func (c *Calendar) DeleteEvent(UID string) (eve *Event, err error) {
 	return
 }
 
+// EventsForDay возвращает список событий за указанный день для определенного пользователя
 func (c *Calendar) EventsForDay(userUID string, day time.Time) []*Event {
 	var res []*Event
 	c.mu.RLock()
@@ -120,6 +129,7 @@ func (c *Calendar) EventsForDay(userUID string, day time.Time) []*Event {
 	return res
 }
 
+// EventsForWeek возвращает список событий за указанную неделю для определенного пользователя
 func (c *Calendar) EventsForWeek(userUID string, year time.Time) []*Event {
 	var res []*Event
 	c.mu.RLock()
@@ -138,6 +148,7 @@ func (c *Calendar) EventsForWeek(userUID string, year time.Time) []*Event {
 	return res
 }
 
+// EventsForMonth возвращает список событий за указанный месяц для определенного пользовател
 func (c *Calendar) EventsForMonth(userUID string, month time.Time) []*Event {
 	var res []*Event
 	c.mu.RLock()
@@ -160,6 +171,7 @@ func middle(first, x, second int) bool {
 	return false
 }
 
+// GetEvent возвращает событие по его UID
 func (c *Calendar) GetEvent(UID string) (eve *Event, err error) {
 	c.mu.RLock()
 	if v, found := c.events[UID]; !found {

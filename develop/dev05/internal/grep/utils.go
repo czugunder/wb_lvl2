@@ -29,6 +29,7 @@ func addToSlice(s *[]string, line string) {
 	*s = append(*s, line)
 }
 
+// ReadFile считывает файл
 func ReadFile(path string) ([]string, error) {
 	var line string
 	var lines []string

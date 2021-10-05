@@ -1,39 +1,47 @@
-package anagramHelper
+package anagramhelper
 
 import (
 	"sort"
 )
 
-type anagramData struct {
+// AnagramData вспомогательный тип для организации групп анаграмм, где header первое найденное вхождение
+// headerMap - хеш-таблица характеризующая данную группу, tail - слайс с остальными вхождениями
+type AnagramData struct {
 	header    string
 	headerMap map[rune]int
 	tail      []string
 }
 
-func (ad *anagramData) Add(word string) {
+// Add добавляет новое вхождение
+func (ad *AnagramData) Add(word string) {
 	ad.tail = append(ad.tail, word)
 }
 
-func NewAnagramData(header string, headerMap map[rune]int) *anagramData {
-	return &anagramData{
+// NewAnagramData создает экземпляр AnagramData
+func NewAnagramData(header string, headerMap map[rune]int) *AnagramData {
+	return &AnagramData{
 		header:    header,
 		headerMap: headerMap,
 	}
 }
 
-type anagramHelper struct {
-	data []*anagramData
+// AnagramHelper вспомогательный тип, хранит слайс AnagramData
+type AnagramHelper struct {
+	data []*AnagramData
 }
 
-func NewAnagramHelper() *anagramHelper {
-	return &anagramHelper{}
+// NewAnagramHelper создает экземпляр AnagramHelper
+func NewAnagramHelper() *AnagramHelper {
+	return &AnagramHelper{}
 }
 
-func (ah *anagramHelper) Add(header string, headerMap map[rune]int) {
+// Add добавляет новую группу анаграмм
+func (ah *AnagramHelper) Add(header string, headerMap map[rune]int) {
 	ah.data = append(ah.data, NewAnagramData(header, headerMap))
 }
 
-func (ah *anagramHelper) FindByHeaderMap(m map[rune]int) *anagramData {
+// FindByHeaderMap ищет группу анаграмм по характеризующий ее хеш-таблице
+func (ah *AnagramHelper) FindByHeaderMap(m map[rune]int) *AnagramData {
 	for _, v := range ah.data {
 		if CompareWordMaps(v.headerMap, m) {
 			return v
@@ -42,8 +50,9 @@ func (ah *anagramHelper) FindByHeaderMap(m map[rune]int) *anagramData {
 	return nil
 }
 
-func (ah *anagramHelper) DeleteUniqueAndSort() {
-	var newData []*anagramData
+// DeleteUniqueAndSort удаляет множества из одного элемента и сортирует выдачу
+func (ah *AnagramHelper) DeleteUniqueAndSort() {
+	var newData []*AnagramData
 	for _, v := range ah.data {
 		if len(v.tail) != 0 {
 			SortArray(&v.tail)
@@ -53,7 +62,8 @@ func (ah *anagramHelper) DeleteUniqueAndSort() {
 	ah.data = newData
 }
 
-func (ah *anagramHelper) FormMap() map[string]*[]string {
+// FormMap формирует хеш-таблицу, где ключ первое вхождение анаграммы, а значение - слайс из остальных вхождений
+func (ah *AnagramHelper) FormMap() map[string]*[]string {
 	m := make(map[string]*[]string)
 	for _, v := range ah.data {
 		m[v.header] = &v.tail
@@ -61,10 +71,12 @@ func (ah *anagramHelper) FormMap() map[string]*[]string {
 	return m
 }
 
+// SortArray сортирует слайс строк
 func SortArray(arr *[]string) {
 	sort.Strings(*arr)
 }
 
+// CompareWordMaps сравнивает две хеш-таблицы, нужно для поиска анаграмм по характеризующим хем-таблицам
 func CompareWordMaps(m1, m2 map[rune]int) bool {
 	if len(m1) != len(m2) {
 		return false

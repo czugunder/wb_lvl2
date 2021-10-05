@@ -13,10 +13,10 @@ func TestCompareWordMaps(t *testing.T) {
 	m4 := map[rune]int{'в': 1, 'р': 2, 'и': 1, 'о': 1, 'д': 1, 'а': 1}   // другой набор рун, длина та же
 	m5 := map[rune]int{'п': 1, 'р': 2, 'и': 1}                           // не та длина
 
-	r1 := anagramHelper.CompareWordMaps(m1, m2) // true
-	r2 := anagramHelper.CompareWordMaps(m1, m3) // false
-	r3 := anagramHelper.CompareWordMaps(m1, m4) // false
-	r4 := anagramHelper.CompareWordMaps(m1, m5) // false
+	r1 := anagramhelper.CompareWordMaps(m1, m2) // true
+	r2 := anagramhelper.CompareWordMaps(m1, m3) // false
+	r3 := anagramhelper.CompareWordMaps(m1, m4) // false
+	r4 := anagramhelper.CompareWordMaps(m1, m5) // false
 
 	if r1 != true {
 		t.Fatalf("Comparing of equal maps (m1:%v, m2:%v) went wrong, should be true, got false\n",
@@ -43,7 +43,7 @@ func TestWordToMap(t *testing.T) {
 
 	testMap := anagrams.WordToMap(word)
 
-	areSame := anagramHelper.CompareWordMaps(wordMap, testMap)
+	areSame := anagramhelper.CompareWordMaps(wordMap, testMap)
 	if !areSame {
 		t.Fatalf("Incorrent word to map convertion on word %s, expected: %v, got: %v\n", word, wordMap, testMap)
 	}

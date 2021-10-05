@@ -9,29 +9,35 @@ import (
 	"wb_lvl2/develop/dev06/internal/config"
 )
 
-type cut struct {
+// Cut - основной тип в программе
+type Cut struct {
 	config *config.Config
 	writer io.Writer
 	reader io.Reader
 }
 
-func NewCut() *cut {
-	return &cut{}
+// NewCut создает экземпляр Cut
+func NewCut() *Cut {
+	return &Cut{}
 }
 
-func (c *cut) SetConfig(cfg *config.Config) {
+// SetConfig записывает новую конфигурацию в Cut
+func (c *Cut) SetConfig(cfg *config.Config) {
 	c.config = cfg
 }
 
-func (c *cut) SetWriter(w io.Writer) {
+// SetWriter задает новый поток вывода
+func (c *Cut) SetWriter(w io.Writer) {
 	c.writer = w
 }
 
-func (c *cut) SetReader(r io.Reader) {
+// SetReader задает новый поток ввода
+func (c *Cut) SetReader(r io.Reader) {
 	c.reader = r
 }
 
-func (c *cut) Configure() error {
+// Configure инициализирует конфигурацию
+func (c *Cut) Configure() error {
 	cfg := config.NewConfig()
 	cfg.SetFlags()
 	if err := cfg.DecodeFlagF(); err != nil {
@@ -43,7 +49,8 @@ func (c *cut) Configure() error {
 	return nil
 }
 
-func (c *cut) Run() error {
+// Run запускает программу
+func (c *Cut) Run() error {
 	scanner := bufio.NewScanner(c.reader)
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -60,7 +67,8 @@ func (c *cut) Run() error {
 	return nil
 }
 
-func (c *cut) FormatString(line string) (string, bool) {
+// FormatString обрабатывает строку, делит на колонки
+func (c *Cut) FormatString(line string) (string, bool) {
 	sLine := strings.Split(line, c.config.D)
 	var rLine string
 	if len(sLine) == 1 {
@@ -76,7 +84,8 @@ func (c *cut) FormatString(line string) (string, bool) {
 	return rLine, true
 }
 
-func (c *cut) MakePattern(sLen int) []bool {
+// MakePattern обрабатывает флаг -f
+func (c *Cut) MakePattern(sLen int) []bool {
 	pattern := make([]bool, sLen, sLen)
 	var last int
 	for _, r := range c.config.Ranges {

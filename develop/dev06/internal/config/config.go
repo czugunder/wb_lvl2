@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// Config - тип для хранения конфигурации
 type Config struct {
 	F      string
 	D      string
@@ -13,10 +14,12 @@ type Config struct {
 	Ranges []*FRange
 }
 
+// NewConfig создает экземпляр Config
 func NewConfig() *Config {
 	return &Config{}
 }
 
+// SetFlags считывает флаги
 func (c *Config) SetFlags() {
 	flag.StringVar(&c.F, "f", "", "выбрать поля (колонки)")
 	flag.StringVar(&c.D, "d", "\t", "использовать другой разделитель")
@@ -24,6 +27,7 @@ func (c *Config) SetFlags() {
 	flag.Parse()
 }
 
+// DecodeFlagF декодирует флаг -f
 func (c *Config) DecodeFlagF() error {
 	ranges := strings.Split(c.F, ",")
 	var decodedRanges []*FRange
@@ -43,6 +47,7 @@ func (c *Config) DecodeFlagF() error {
 	return nil
 }
 
+// FRange - тип, описывающий флаг -f
 type FRange struct {
 	start     int
 	end       int
@@ -50,22 +55,27 @@ type FRange struct {
 	toEnd     bool
 }
 
+// GetStart возвращает начальное поле
 func (fr *FRange) GetStart() int {
 	return fr.start
 }
 
+// GetEnd возвращает конечное поле
 func (fr *FRange) GetEnd() int {
 	return fr.end
 }
 
+// GetFromStart возвращает булево значение - является ли нулевое поле начальным
 func (fr *FRange) GetFromStart() bool {
 	return fr.fromStart
 }
 
+// GetToEnd возвращает булево значение - является ли последнее поле конечным
 func (fr *FRange) GetToEnd() bool {
 	return fr.toEnd
 }
 
+// NewSingleRange возвращает промежуток из одного поля [i]
 func NewSingleRange(start int) *FRange {
 	return &FRange{
 		start: start,
@@ -73,6 +83,7 @@ func NewSingleRange(start int) *FRange {
 	}
 }
 
+// NewLongRange возвращает промежуток из нескольких полей [i:j]
 func NewLongRange(start, end int) *FRange {
 	return &FRange{
 		start: start,
@@ -80,6 +91,7 @@ func NewLongRange(start, end int) *FRange {
 	}
 }
 
+// NewToEndRange возвращает промежуток, концом которого является последнее поле [i:]
 func NewToEndRange(start int) *FRange {
 	return &FRange{
 		start: start,
@@ -87,6 +99,7 @@ func NewToEndRange(start int) *FRange {
 	}
 }
 
+// NewFromStartRange возвращает промежуток, началом которого является нулевое поле [:j]
 func NewFromStartRange(end int) *FRange {
 	return &FRange{
 		end:       end,
@@ -94,6 +107,7 @@ func NewFromStartRange(end int) *FRange {
 	}
 }
 
+// CheckValidRange проверяет, может ли существовать такой промежуток
 func CheckValidRange(fr *FRange) bool {
 	if fr.fromStart {
 		if !fr.toEnd && fr.start == 0 && fr.end != 0 {
@@ -113,6 +127,7 @@ func CheckValidRange(fr *FRange) bool {
 	return false
 }
 
+// DecodeRange декодирует строку в FRange
 func DecodeRange(rawRange string) (*FRange, error) {
 	r := strings.ReplaceAll(rawRange, " ", "")
 	dashCount := strings.Count(r, "-")

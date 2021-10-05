@@ -11,6 +11,7 @@ import (
 	"sync"
 )
 
+// Source - тип, описывающий источник информации для фильтрации, будь то файл или stdin
 type Source struct {
 	Config *Config
 	Path   string
@@ -18,6 +19,7 @@ type Source struct {
 	lines  []string
 }
 
+// NewSource создает экземпляр Source
 func NewSource(c *Config, wg *sync.WaitGroup, p string) *Source {
 	return &Source{
 		Config: c,
@@ -26,6 +28,7 @@ func NewSource(c *Config, wg *sync.WaitGroup, p string) *Source {
 	}
 }
 
+// CheckLine сравнивает строку с паттерном, учитывая флаги
 func (s *Source) CheckLine(line string) bool {
 	target := true
 	if s.Config.Flagv { // обработка флага -v
@@ -52,6 +55,7 @@ func (s *Source) CheckLine(line string) bool {
 	return !target
 }
 
+// Run запускает фильтрацию исходя из конфигурации
 func (s *Source) Run() {
 	defer s.wg.Done()
 	if s.Path == "" {
@@ -65,6 +69,7 @@ func (s *Source) Run() {
 	}
 }
 
+// FileRun запускает фильтрацию по файлу
 func (s *Source) FileRun(w io.Writer) error {
 	if err := s.readFile(); err != nil {
 		return err
@@ -113,6 +118,7 @@ func (s *Source) FileRun(w io.Writer) error {
 	return nil
 }
 
+// StdioRun запускает фильтрацию по stdin
 func (s *Source) StdioRun(w io.Writer, r io.Reader) error { // флаг -c в оригинальном grep не работает с STDIO
 	scanner := bufio.NewScanner(r)
 	var index int
@@ -188,6 +194,7 @@ func (s *Source) printFurther(w io.Writer, n, i int) error {
 	return nil
 }
 
+// PrintLine выводит строку в указанный поток
 func (s *Source) PrintLine(w io.Writer, i int) error {
 	if len(s.lines) > i && i >= 0 {
 		line := s.lines[i]
@@ -205,6 +212,7 @@ func (s *Source) PrintLine(w io.Writer, i int) error {
 	return nil
 }
 
+// PrintCounter выводит данный по флагу -c (кол-во совпадений)
 func (s *Source) PrintCounter(w io.Writer, cnt int) error {
 	prefix := "stdio:"
 	if s.Path != "" {
@@ -216,6 +224,7 @@ func (s *Source) PrintCounter(w io.Writer, cnt int) error {
 	return nil
 }
 
+// AddLine добавляет строку в экземпляр типа источника
 func (s *Source) AddLine(line string) {
 	s.lines = append(s.lines, line)
 }

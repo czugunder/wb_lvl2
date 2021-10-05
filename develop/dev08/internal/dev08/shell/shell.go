@@ -14,7 +14,8 @@ import (
 	netcat "wb_lvl2/develop/dev08/internal/dev08/nc"
 )
 
-type shell struct {
+// Shell - тип описывающий шелл
+type Shell struct {
 	reader     io.Reader
 	writer     io.Writer
 	userName   string
@@ -24,43 +25,50 @@ type shell struct {
 	pipeBuffer *bytes.Buffer
 }
 
-func NewShell() *shell {
-	return &shell{
+// NewShell создает экземпляр Shell
+func NewShell() *Shell {
+	return &Shell{
 		run: true,
 	}
 }
 
-func (s *shell) Configure(username, sysname string) {
+// Configure выполняет конфигурацию
+func (s *Shell) Configure(username, sysname string) {
 	s.SetReader(os.Stdin)
 	s.SetWriter(os.Stdout)
 	s.SetSystemName(sysname)
 	s.SetUserName(username)
 }
 
-func (s *shell) SetReader(r io.Reader) {
+// SetReader - задает новый поток ввода
+func (s *Shell) SetReader(r io.Reader) {
 	s.reader = r
 }
 
-func (s *shell) SetWriter(w io.Writer) {
+// SetWriter - задает новый поток вывода
+func (s *Shell) SetWriter(w io.Writer) {
 	s.writer = w
 }
 
-func (s *shell) SetUserName(un string) {
+// SetUserName - задает имя пользователя в шелле
+func (s *Shell) SetUserName(un string) {
 	s.userName = un
 }
 
-func (s *shell) SetSystemName(sn string) {
+// SetSystemName - задает название системы в шелле
+func (s *Shell) SetSystemName(sn string) {
 	s.systemName = sn
 }
 
-func (s *shell) Run() error {
+// Run запускает шелл
+func (s *Shell) Run() error {
 	if err := s.readLines(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *shell) readLines() error {
+func (s *Shell) readLines() error {
 	b := bufio.NewScanner(s.reader)
 	if err := s.printPrefix(); err != nil {
 		return err
@@ -84,7 +92,7 @@ func (s *shell) readLines() error {
 	return nil
 }
 
-func (s *shell) forkHandler(line string) error {
+func (s *Shell) forkHandler(line string) error {
 	calls := strings.Split(line, "&")
 	if len(calls) == 1 { // форка нет
 		if err := s.pipeHandler(calls[0]); err != nil {
@@ -107,7 +115,7 @@ func (s *shell) forkHandler(line string) error {
 	return nil
 }
 
-func (s *shell) pipeHandler(call string) error {
+func (s *Shell) pipeHandler(call string) error {
 	assignments := strings.Split(call, "|")
 	if len(assignments) > 1 {
 		s.pipeBuffer = &bytes.Buffer{}
@@ -127,7 +135,7 @@ func (s *shell) pipeHandler(call string) error {
 	return nil
 }
 
-func (s *shell) selector(l string) error {
+func (s *Shell) selector(l string) error {
 	request := strings.Fields(l)
 	if len(request) > 0 {
 		switch request[0] {
@@ -189,7 +197,7 @@ func (s *shell) selector(l string) error {
 	return nil
 }
 
-func (s *shell) printLine(l string) error {
+func (s *Shell) printLine(l string) error {
 	if _, errP := fmt.Fprint(s.writer, "["+strconv.Itoa(syscall.Getpid())+"] "+l+"\n"); errP != nil {
 		return errP
 	}
@@ -201,7 +209,7 @@ func (s *shell) printLine(l string) error {
 	return nil
 }
 
-func (s *shell) printPrefix() error {
+func (s *Shell) printPrefix() error {
 	if currentDir, errPWD := s.pwd(); errPWD != nil {
 		return errPWD
 	} else {
@@ -215,14 +223,14 @@ func (s *shell) printPrefix() error {
 	return nil
 }
 
-func (s *shell) cd(path string) error {
+func (s *Shell) cd(path string) error {
 	if err := os.Chdir(path); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *shell) pwd() (string, error) {
+func (s *Shell) pwd() (string, error) {
 	if dir, err := os.Getwd(); err != nil {
 		return "", err
 	} else {
@@ -230,14 +238,14 @@ func (s *shell) pwd() (string, error) {
 	}
 }
 
-func (s *shell) echo(args []string) error {
+func (s *Shell) echo(args []string) error {
 	if err := s.printLine(strings.Join(args, " ")); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *shell) kill(args []string) []error {
+func (s *Shell) kill(args []string) []error {
 	var errs []error
 	for _, potentialPID := range args {
 		if PID, err := strconv.Atoi(potentialPID); err != nil {
@@ -251,11 +259,11 @@ func (s *shell) kill(args []string) []error {
 	return nil
 }
 
-func (s *shell) ps() ([]ps.Process, error) {
+func (s *Shell) ps() ([]ps.Process, error) {
 	return ps.Processes()
 }
 
-func (s *shell) netcat(args []string) error {
+func (s *Shell) netcat(args []string) error {
 	nc := netcat.NewNC(s.reader)
 	if err := nc.Run(args); err != nil {
 		return err
@@ -263,7 +271,7 @@ func (s *shell) netcat(args []string) error {
 	return nil
 }
 
-func (s *shell) exec(args []string) error {
+func (s *Shell) exec(args []string) error {
 	if len(args) > 0 {
 		name := args[0]
 		arg := strings.Join(args[1:], " ")
@@ -277,14 +285,14 @@ func (s *shell) exec(args []string) error {
 	return nil
 }
 
-func (s *shell) exit() {
+func (s *Shell) exit() {
 	s.run = false
 }
 
-func (s *shell) exitZero() {
+func (s *Shell) exitZero() {
 	os.Exit(0)
 }
 
-func (s *shell) exitNonZero() {
+func (s *Shell) exitNonZero() {
 	os.Exit(2)
 }

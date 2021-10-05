@@ -10,13 +10,15 @@ import (
 	"wb_lvl2/develop/dev11/internal/dev11/calendar"
 )
 
-type server struct {
+// Server - тип, описывающий сервер
+type Server struct {
 	calendar *calendar.Calendar
-	config   *config
+	config   *Config
 }
 
-func NewSever(config *config) *server {
-	return &server{
+// NewSever создает экземпляр Server
+func NewSever(config *Config) *Server {
+	return &Server{
 		config:   config,
 		calendar: calendar.NewCalendar(),
 	}
@@ -30,7 +32,7 @@ func logger(handler http.Handler) http.Handler {
 	})
 }
 
-func (s *server) handle() {
+func (s *Server) handle() {
 	http.Handle("/create_event", logger(http.HandlerFunc(s.addEvent)))
 	http.Handle("/update_event", logger(http.HandlerFunc(s.updateEvent)))
 	http.Handle("/delete_event", logger(http.HandlerFunc(s.deleteEvent)))
@@ -39,13 +41,14 @@ func (s *server) handle() {
 	http.Handle("/events_for_month", logger(http.HandlerFunc(s.monthEvents)))
 }
 
-func (s *server) runServer(err chan error) {
+func (s *Server) runServer(err chan error) {
 	go func() {
 		err <- http.ListenAndServe(s.config.address, nil) // дефолтный http.DefaultServeMux
 	}()
 }
 
-func (s *server) Run() {
+// Run запускает сервер
+func (s *Server) Run() {
 	s.handle()
 	sigint := make(chan os.Signal)
 	errors := make(chan error)

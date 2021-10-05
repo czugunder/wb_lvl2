@@ -23,11 +23,11 @@ type eventUpdateRAW struct {
 	EndDT   string `json:"end_dt"`
 }
 
-func NewEventUpdateRAW() *eventUpdateRAW {
+func newEventUpdateRAW() *eventUpdateRAW {
 	return &eventUpdateRAW{}
 }
 
-func (e *eventUpdateRAW) ConvertToEvent() *calendar.Event {
+func (e *eventUpdateRAW) convertToEvent() *calendar.Event {
 	eve := calendar.NewEvent()
 	eve.Name = e.Name
 	eve.Place = e.Place
@@ -37,7 +37,7 @@ func (e *eventUpdateRAW) ConvertToEvent() *calendar.Event {
 	return eve
 }
 
-func (e *eventUpdateRAW) Valid() bool {
+func (e *eventUpdateRAW) valid() bool {
 	if e.UID == "" {
 		return false
 	}
@@ -52,11 +52,11 @@ type eventAddRAW struct {
 	EndDT   string `json:"end_dt"`
 }
 
-func NewEventAddRAW() *eventAddRAW {
+func newEventAddRAW() *eventAddRAW {
 	return &eventAddRAW{}
 }
 
-func (e *eventAddRAW) ConvertToEvent() *calendar.Event {
+func (e *eventAddRAW) convertToEvent() *calendar.Event {
 	eve := calendar.NewEvent()
 	eve.Name = e.Name
 	eve.Place = e.Place
@@ -66,7 +66,7 @@ func (e *eventAddRAW) ConvertToEvent() *calendar.Event {
 	return eve
 }
 
-func (e *eventAddRAW) Valid() bool {
+func (e *eventAddRAW) valid() bool {
 	if e.UserUID == "" {
 		return false
 	}
@@ -79,44 +79,44 @@ func (e *eventAddRAW) Valid() bool {
 	return true
 }
 
-func (s *server) addEvent(w http.ResponseWriter, r *http.Request) {
+func (s *Server) addEvent(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		s.response(false, w, errMethod.Error(), http.StatusServiceUnavailable)
 		return
 	}
-	eveRaw := NewEventAddRAW()
+	eveRaw := newEventAddRAW()
 	err := json.NewDecoder(r.Body).Decode(&eveRaw)
 	if err != nil {
 		s.response(false, w, errInput.Error(), http.StatusBadRequest)
 		return
 	}
-	if !eveRaw.Valid() {
+	if !eveRaw.valid() {
 		s.response(false, w, errInput.Error(), http.StatusBadRequest)
 		return
 	}
-	eve := eveRaw.ConvertToEvent()
+	eve := eveRaw.convertToEvent()
 	uid := s.calendar.CreateEvent(eve)
 	s.response(true, w, struct {
 		UID string `json:"uid"`
 	}{UID: uid}, http.StatusOK)
 }
 
-func (s *server) updateEvent(w http.ResponseWriter, r *http.Request) {
+func (s *Server) updateEvent(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		s.response(false, w, errMethod.Error(), http.StatusServiceUnavailable)
 		return
 	}
-	eveRaw := NewEventUpdateRAW()
+	eveRaw := newEventUpdateRAW()
 	err := json.NewDecoder(r.Body).Decode(&eveRaw)
 	if err != nil {
 		s.response(false, w, errInput.Error(), http.StatusBadRequest)
 		return
 	}
-	if !eveRaw.Valid() {
+	if !eveRaw.valid() {
 		s.response(false, w, errInput.Error(), http.StatusBadRequest)
 		return
 	}
-	eve := eveRaw.ConvertToEvent()
+	eve := eveRaw.convertToEvent()
 	curEve, errU := s.calendar.UpdateEvent(eveRaw.UID, eve)
 	if errU != nil {
 		s.response(false, w, nil, http.StatusBadRequest)
@@ -125,18 +125,18 @@ func (s *server) updateEvent(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *server) deleteEvent(w http.ResponseWriter, r *http.Request) {
+func (s *Server) deleteEvent(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		s.response(false, w, errMethod.Error(), http.StatusServiceUnavailable)
 		return
 	}
-	eveRaw := NewEventUpdateRAW()
+	eveRaw := newEventUpdateRAW()
 	err := json.NewDecoder(r.Body).Decode(&eveRaw)
 	if err != nil {
 		s.response(false, w, errInput.Error(), http.StatusBadRequest)
 		return
 	}
-	if !eveRaw.Valid() {
+	if !eveRaw.valid() {
 		s.response(false, w, errInput.Error(), http.StatusBadRequest)
 		return
 	}
@@ -148,7 +148,7 @@ func (s *server) deleteEvent(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *server) dayEvents(w http.ResponseWriter, r *http.Request) {
+func (s *Server) dayEvents(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		s.response(false, w, errMethod.Error(), http.StatusServiceUnavailable)
 		return
@@ -168,7 +168,7 @@ func (s *server) dayEvents(w http.ResponseWriter, r *http.Request) {
 	s.response(true, w, eves, http.StatusOK)
 }
 
-func (s *server) weekEvents(w http.ResponseWriter, r *http.Request) {
+func (s *Server) weekEvents(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		s.response(false, w, errMethod.Error(), http.StatusServiceUnavailable)
 		return
@@ -188,7 +188,7 @@ func (s *server) weekEvents(w http.ResponseWriter, r *http.Request) {
 	s.response(true, w, eves, http.StatusOK)
 }
 
-func (s *server) monthEvents(w http.ResponseWriter, r *http.Request) {
+func (s *Server) monthEvents(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		s.response(false, w, errMethod.Error(), http.StatusServiceUnavailable)
 		return
@@ -208,15 +208,17 @@ func (s *server) monthEvents(w http.ResponseWriter, r *http.Request) {
 	s.response(true, w, eves, http.StatusOK)
 }
 
+// Result тип для ответа, имеет поле result
 type Result struct {
 	Result interface{} `json:"result"`
 }
 
+// Error тип для ответа, имеет поле error
 type Error struct {
 	Error interface{} `json:"error"`
 }
 
-func (s *server) response(isResult bool, w http.ResponseWriter, payload interface{}, code int) {
+func (s *Server) response(isResult bool, w http.ResponseWriter, payload interface{}, code int) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(code)
 	if isResult {

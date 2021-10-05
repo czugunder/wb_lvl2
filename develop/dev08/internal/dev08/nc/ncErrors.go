@@ -1,11 +1,13 @@
 package nc
 
+// NoConnectionType - ошибка, не указан тип соединения
 type NoConnectionType struct{}
 
 func (e *NoConnectionType) Error() string {
 	return "connection type is not specified, use -t for TCP and -u for UDP"
 }
 
+// ArgsError - ошибка, неверные аргументы
 type ArgsError struct{}
 
 func (e *ArgsError) Error() string {

@@ -11,7 +11,8 @@ import (
 	"time"
 )
 
-type wget struct {
+// Wget - основной тип в скарпере
+type Wget struct {
 	domain    string
 	saveDir   string
 	transport *http.Transport
@@ -20,8 +21,9 @@ type wget struct {
 	wg        *sync.WaitGroup
 }
 
-func NewWget() *wget {
-	return &wget{
+// NewWget создает экземпляр Wget
+func NewWget() *Wget {
+	return &Wget{
 		pages: make(map[string]bool),
 		mu:    &sync.RWMutex{},
 		wg:    &sync.WaitGroup{},
@@ -33,23 +35,27 @@ func NewWget() *wget {
 	}
 }
 
-func (w *wget) SetDomain(domain string) {
+// SetDomain задает домен для скачивания
+func (w *Wget) SetDomain(domain string) {
 	w.domain = domain
 }
 
-func (w *wget) SetSaveDirectory(saveDir string) {
+// SetSaveDirectory задает путь директории, куда сохранить сайт
+func (w *Wget) SetSaveDirectory(saveDir string) {
 	w.saveDir = saveDir
 	if err := os.Chdir(saveDir); err != nil {
 		log.Fatalln("can't set save directory")
 	}
 }
 
-func (w *wget) SaveSite() {
+// SaveSite запускает процесс сохранения сайта
+func (w *Wget) SaveSite() {
 	w.AddPage(w.domain)
 	w.GetSite()
 }
 
-func (w *wget) GetSite() {
+// GetSite последовательно скачивает все страницы сайта, исключая уже скаченные
+func (w *Wget) GetSite() {
 	var pageLen int
 	for {
 		pageLen = len(w.pages)
@@ -69,7 +75,8 @@ func (w *wget) GetSite() {
 	w.transport.CloseIdleConnections()
 }
 
-func (w *wget) ProcessPage(url string) {
+// ProcessPage обрабатывает страницу, сохраняет если все ок
+func (w *Wget) ProcessPage(url string) {
 	defer w.wg.Done()
 	page, err := w.GetPage(url)
 	w.SetInspected(url)
@@ -92,19 +99,22 @@ func (w *wget) ProcessPage(url string) {
 	}
 }
 
-func (w *wget) AddPage(url string) {
+// AddPage добавляет ссылку в очередь на обработку
+func (w *Wget) AddPage(url string) {
 	w.mu.Lock()
 	w.pages[url] = false
 	w.mu.Unlock()
 }
 
-func (w *wget) SetInspected(url string) {
+// SetInspected поднимает флаг обработки
+func (w *Wget) SetInspected(url string) {
 	w.mu.Lock()
 	w.pages[url] = true
 	w.mu.Unlock()
 }
 
-func (w *wget) GetSavePathAndName(url string) (path, name string) {
+// GetSavePathAndName выдает путь и название для сохранения страницы исходя из ссылки
+func (w *Wget) GetSavePathAndName(url string) (path, name string) {
 	if url[len(url)-1] == '/' {
 		url = url[:len(url)-1]
 	}
@@ -123,14 +133,16 @@ func (w *wget) GetSavePathAndName(url string) (path, name string) {
 	return
 }
 
-func (w *wget) IsURLInternal(url string) (is bool) {
+// IsURLInternal проверяет, относится ли ссылка к данному домену
+func (w *Wget) IsURLInternal(url string) (is bool) {
 	if strings.Index(url, w.domain) == 0 {
 		is = true
 	}
 	return
 }
 
-func (w *wget) Save(url string, page []byte) (bool, error) {
+// Save сохраняет страницу
+func (w *Wget) Save(url string, page []byte) (bool, error) {
 	if w.IsJunkPage(url) {
 		return true, nil
 	}
@@ -153,11 +165,13 @@ func (w *wget) Save(url string, page []byte) (bool, error) {
 	return false, nil
 }
 
-func (w *wget) ContainsExtension(name string) int {
+// ContainsExtension проверяет есть ли в ссылке расширение файла
+func (w *Wget) ContainsExtension(name string) int {
 	return strings.Index(name, ".")
 }
 
-func (w *wget) IsJunkPage(url string) bool {
+// IsJunkPage проверяет ссылку на аргументы, если есть возвращает true
+func (w *Wget) IsJunkPage(url string) bool {
 	if strings.Contains(url, "?") {
 		return true
 	}
@@ -170,12 +184,14 @@ func (w *wget) IsJunkPage(url string) bool {
 	return false
 }
 
-func (w *wget) ParseLinks(page string) []string {
+// ParseLinks собирает все ссылки со страницы
+func (w *Wget) ParseLinks(page string) []string {
 	r := regexp.MustCompile(`href="(.*?)"`)
 	return r.FindAllString(page, -1)
 }
 
-func (w *wget) GetPage(url string) ([]byte, error) {
+// GetPage скачивает страницу по ссылке
+func (w *Wget) GetPage(url string) ([]byte, error) {
 	client := &http.Client{Transport: w.transport}
 	resp, err := client.Get(url)
 	if err != nil {

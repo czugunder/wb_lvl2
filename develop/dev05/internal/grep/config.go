@@ -4,6 +4,7 @@ import (
 	"flag"
 )
 
+// Config тип конфигурации, хранит флаги, паттерн и пути к файлам для фильтрации, если они даны
 type Config struct {
 	FlagA   int
 	FlagB   int
@@ -17,9 +18,12 @@ type Config struct {
 	Files   []string
 }
 
+// NewConfig создает экземпляр Config
 func NewConfig() *Config {
 	return &Config{}
 }
+
+// SetConfig считывает флаги, запускает GetRest
 func (f *Config) SetConfig() error {
 	flag.IntVar(&f.FlagA, "A", 0, "печатать +N строк после совпадения")
 	flag.IntVar(&f.FlagB, "B", 0, "печатать +N строк до совпадения")
@@ -36,6 +40,7 @@ func (f *Config) SetConfig() error {
 	return nil
 }
 
+// GetRest выясняет есть ли паттерн и пути к файлам для фильтрации, если есть записывает в Config
 func (f *Config) GetRest(a []string) error {
 	if len(a) < 1 {
 		return NewNoPatternError()

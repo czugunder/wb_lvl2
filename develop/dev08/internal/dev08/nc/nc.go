@@ -7,18 +7,21 @@ import (
 	"net"
 )
 
-type netcat struct {
+// Netcat - тип описывающий утилиту
+type Netcat struct {
 	reader io.Reader
 	writer io.Writer
 }
 
-func NewNC(r io.Reader) *netcat {
-	return &netcat{
+// NewNC создает экземпляр Netcat
+func NewNC(r io.Reader) *Netcat {
+	return &Netcat{
 		reader: r,
 	}
 }
 
-func (nc *netcat) Run(req []string) error {
+// Run запускает Netcat
+func (nc *Netcat) Run(req []string) error {
 	if len(req) != 3 { // первый аргумент -t или -u для определения типа протокола, дальше адрес и порт
 		return &ArgsError{}
 	}
@@ -31,7 +34,8 @@ func (nc *netcat) Run(req []string) error {
 	}
 }
 
-func (nc *netcat) TCP(url string) error {
+// TCP создает подключение по TCP
+func (nc *Netcat) TCP(url string) error {
 	if s, err := net.ResolveTCPAddr("tcp4", url); err != nil { // это чтоб localhost в 127.0.0.1 красиво превращался
 		return err
 	} else {
@@ -48,7 +52,8 @@ func (nc *netcat) TCP(url string) error {
 	return nil
 }
 
-func (nc *netcat) UDP(url string) error { // тут все аналогично TCP()
+// UDP создает подключение по UDP
+func (nc *Netcat) UDP(url string) error { // тут все аналогично TCP()
 	if s, err := net.ResolveUDPAddr("udp4", url); err != nil {
 		return err
 	} else {
@@ -65,7 +70,7 @@ func (nc *netcat) UDP(url string) error { // тут все аналогично 
 	return nil
 }
 
-func (nc *netcat) session() error {
+func (nc *Netcat) session() error {
 	r := bufio.NewScanner(nc.reader)
 	for r.Scan() { // считывание из ридера
 		line := r.Text()

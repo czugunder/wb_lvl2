@@ -1,17 +1,20 @@
 package server
 
-type config struct {
+// Config тип, хранящий конфигурацию сервера
+type Config struct {
 	address string
 }
 
-func DefaultConfig() *config {
-	return &config{
+// DefaultConfig возвращает конфигурацию по умолчанию
+func DefaultConfig() *Config {
+	return &Config{
 		address: "localhost:8888",
 	}
 }
 
-func NewConfig(address string) *config {
-	return &config{
+// NewConfig создает экземпляр Config
+func NewConfig(address string) *Config {
+	return &Config{
 		address: address,
 	}
 }

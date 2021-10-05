@@ -2,23 +2,27 @@ package grep
 
 import "sync"
 
-type grep struct {
+// Grep основной тип фильтрации
+type Grep struct {
 	config *Config
 	wg     *sync.WaitGroup
 }
 
-func NewGrep() *grep {
-	return &grep{
+// NewGrep создает экземпляр Grep
+func NewGrep() *Grep {
+	return &Grep{
 		config: NewConfig(),
 		wg:     &sync.WaitGroup{},
 	}
 }
 
-func (g *grep) SetConfig(c *Config) {
+// SetConfig записывает новый Config в Grep
+func (g *Grep) SetConfig(c *Config) {
 	g.config = c
 }
 
-func (g *grep) Run() {
+// Run запускает фильтрацию, если указано несколько файлов, то каждый обрабатывается в отдельной рутине
+func (g *Grep) Run() {
 	if len(g.config.Files) == 0 { // обработка stdin, если не указано ни одного файла
 		s := NewSource(g.config, g.wg, "")
 		g.wg.Add(1)
